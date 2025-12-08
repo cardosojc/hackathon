@@ -1,0 +1,6 @@
+# Large model files
+*.tar
+*.tar.gz
+
+# OS files
+.DS_Store

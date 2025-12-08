@@ -1,0 +1,44 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: ollama-pull
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until ollama list 2>/dev/null; do
+          echo "Waiting for Ollama server..."
+          sleep 2
+        done
+        ollama pull llama3.2:3b
+    depends_on:
+      - ollama
+    restart: "no"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: pgvector
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectordb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+
+volumes:
+  ollama_data:
+  pgvector_data:
+  
