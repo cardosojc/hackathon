@@ -1,15 +1,22 @@
+
+       # -=- IN CASE YOU WANT TO ADD MORE MODELS -=-
+       # To add more models, you can just uncoment the line bellow and change the model name 
+       # ollama pull <model_name> &&
+       # ollama pull qwen3:8b &&  # recomended for the hackaton! but you can use the 4b parameters for faster usage
+
 services:
   ollama:
-    image: cardosoj/ollama-llama3.2:latest
+    image: ollama/ollama:latest
     container_name: ollama
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    restart: unless-stopped
 
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: pgvector
+    container_name: postgres-pgvector
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -17,9 +24,24 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgvector_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  jupyter:
+    image: python:3.11-slim
+    container_name: jupyter
+    working_dir: /home/work
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/home/work
+    command: >
+      bash -c "
+        pip install jupyter jupyterlab requests psycopg2-binary &&
+        jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='hackathon'
+      "
+    restart: unless-stopped
 
 volumes:
   ollama_data:
-  pgvector_data:
-  
+  postgres_data:
